@@ -1,0 +1,25 @@
+{
+  "name": "@gmbs/portal-sdk",
+  "version": "1.0.0",
+  "description": "SDK for GMBS Portal integration with CRM",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "gmbs",
+    "portal",
+    "sdk",
+    "crm"
+  ],
+  "author": "GMBS",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
