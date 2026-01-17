@@ -48,7 +48,7 @@ interface Intervention {
 // =============================================================================
 
 // Simplified status mapping for artisan portal
-const getStatusDisplay = (statusCode: string | null) => {
+const getStatusDisplay = (statusCode: string | null | undefined) => {
   switch (statusCode?.toUpperCase()) {
     case 'ACCEPTE':
     case 'INTER_EN_COURS':
