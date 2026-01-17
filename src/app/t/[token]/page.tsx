@@ -50,9 +50,11 @@ export default function DocumentsPage() {
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        // TODO: Implement document fetching from portal API
-        // For now, return empty
-        setDocuments([])
+        const response = await fetch(`/api/portal/documents?token=${token}`)
+        if (response.ok) {
+          const data = await response.json()
+          setDocuments(data.documents || [])
+        }
       } catch (error) {
         console.error('Erreur chargement documents:', error)
       } finally {
@@ -70,9 +72,22 @@ export default function DocumentsPage() {
     setUploadingKind(kind)
     
     try {
-      // TODO: Implement document upload to portal API
-      // Simulate upload for now
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('kind', kind)
+      formData.append('token', token)
+
+      const response = await fetch('/api/portal/documents', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erreur lors de l\'upload')
+      }
+
+      const data = await response.json()
       
       setDocuments(prev => {
         const existing = prev.find(d => d.kind === kind)
@@ -80,21 +95,22 @@ export default function DocumentsPage() {
           return prev.map(d => d.kind === kind ? {
             kind,
             uploaded: true,
-            filename: file.name,
-            uploadedAt: new Date().toISOString()
+            filename: data.document.filename,
+            uploadedAt: data.document.uploadedAt
           } : d)
         }
         return [...prev, {
           kind,
           uploaded: true,
-          filename: file.name,
-          uploadedAt: new Date().toISOString()
+          filename: data.document.filename,
+          uploadedAt: data.document.uploadedAt
         }]
       })
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erreur upload:', error)
-      alert('Erreur lors de l\'upload du document')
+      const message = error instanceof Error ? error.message : 'Erreur lors de l\'upload du document'
+      alert(message)
     } finally {
       setUploadingKind(null)
     }

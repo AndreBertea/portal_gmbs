@@ -90,27 +90,36 @@ export default function InterventionDetailPage() {
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        // TODO: Fetch from actual API
-        // Mock data for now
+        // Fetch photos
+        const photosRes = await fetch(`/api/portal/photos?token=${token}&interventionId=${interventionId}`)
+        if (photosRes.ok) {
+          const photosData = await photosRes.json()
+          setPhotos(photosData.photos || [])
+        }
+
+        // Fetch report
+        const reportRes = await fetch(`/api/portal/report?token=${token}&interventionId=${interventionId}`)
+        if (reportRes.ok) {
+          const reportData = await reportRes.json()
+          setReport(reportData.report || null)
+        }
+
+        // TODO: Fetch intervention details from CRM via portal API
+        // For now, use mock data for intervention info
         setIntervention({
           id: interventionId,
-          id_inter: 'INT-2024-001',
-          context: 'Réparation fuite d\'eau - Salle de bain',
-          consigne: 'Accès par le gardien. Sonner au 3ème étage gauche. Le client sera absent, les clés sont chez le gardien.',
-          address: '15 rue de la Paix',
-          city: 'Paris',
-          postal_code: '75002',
-          date: '2026-01-20',
-          due_date: '2026-01-25',
+          id_inter: interventionId.startsWith('mock') ? 'INT-2024-001' : interventionId,
+          context: 'Intervention',
+          consigne: null,
+          address: null,
+          city: null,
+          postal_code: null,
+          date: null,
+          due_date: null,
           status: { code: 'INTER_EN_COURS', label: 'En cours', color: '#3b82f6' },
-          metier: { label: 'Plomberie' },
-          sharedDocuments: [
-            { type: 'devis', label: 'Devis initial', url: '#' },
-            { type: 'plan', label: 'Plan de l\'appartement', url: '#' }
-          ]
+          metier: null,
+          sharedDocuments: []
         })
-        setPhotos([])
-        setReport(null)
       } catch (error) {
         console.error('Erreur chargement intervention:', error)
       } finally {
@@ -128,23 +137,29 @@ export default function InterventionDetailPage() {
     setIsUploadingPhoto(true)
     
     try {
-      // TODO: Upload to portal storage
-      // Simulate for now
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      const newPhoto: Photo = {
-        id: `photo-${Date.now()}`,
-        url: URL.createObjectURL(file),
-        filename: file.name,
-        comment: newPhotoComment || null,
-        createdAt: new Date().toISOString()
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('token', token)
+      formData.append('interventionId', interventionId)
+      formData.append('comment', newPhotoComment)
+
+      const response = await fetch('/api/portal/photos', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erreur lors de l\'upload')
       }
-      
-      setPhotos(prev => [...prev, newPhoto])
+
+      const data = await response.json()
+      setPhotos(prev => [...prev, data.photo])
       setNewPhotoComment('')
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erreur upload photo:', error)
-      alert('Erreur lors de l\'upload de la photo')
+      const message = error instanceof Error ? error.message : 'Erreur lors de l\'upload de la photo'
+      alert(message)
     } finally {
       setIsUploadingPhoto(false)
     }
@@ -155,7 +170,16 @@ export default function InterventionDetailPage() {
     if (!confirm('Supprimer cette photo ?')) return
 
     try {
-      setPhotos(prev => prev.filter(p => p.id !== photoId))
+      const response = await fetch(`/api/portal/photos/${photoId}?token=${token}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setPhotos(prev => prev.filter(p => p.id !== photoId))
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Erreur lors de la suppression')
+      }
     } catch (error) {
       console.error('Erreur suppression photo:', error)
     }
@@ -171,18 +195,23 @@ export default function InterventionDetailPage() {
     setIsGeneratingReport(true)
 
     try {
-      // TODO: Call AI report generation API
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      setReport({
-        id: `report-${Date.now()}`,
-        content: `Rapport d'intervention - ${intervention?.id_inter}\n\nDate: ${formatDate(new Date().toISOString())}\n\nDescription des travaux réalisés:\n- Inspection de la fuite\n- Remplacement du joint défectueux\n- Test de pression effectué\n\nPhotos jointes: ${photos.length}\n\nConclusion: Intervention réalisée avec succès.`,
-        generatedAt: new Date().toISOString(),
-        status: 'draft'
+      const response = await fetch('/api/portal/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, interventionId }),
       })
-    } catch (error) {
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Erreur lors de la génération')
+      }
+
+      const data = await response.json()
+      setReport(data.report)
+    } catch (error: unknown) {
       console.error('Erreur génération rapport:', error)
-      alert('Erreur lors de la génération du rapport')
+      const message = error instanceof Error ? error.message : 'Erreur lors de la génération du rapport'
+      alert(message)
     } finally {
       setIsGeneratingReport(false)
     }
@@ -193,9 +222,23 @@ export default function InterventionDetailPage() {
     if (!report) return
 
     try {
-      // TODO: Submit report to CRM via portal API
-      setReport(prev => prev ? { ...prev, status: 'submitted' } : null)
-      alert('Rapport transmis avec succès !')
+      const response = await fetch('/api/portal/report/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          token, 
+          interventionId, 
+          reportId: report.id 
+        }),
+      })
+
+      if (response.ok) {
+        setReport(prev => prev ? { ...prev, status: 'submitted' } : null)
+        alert('Rapport transmis avec succès !')
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Erreur lors de la soumission')
+      }
     } catch (error) {
       console.error('Erreur soumission rapport:', error)
     }
