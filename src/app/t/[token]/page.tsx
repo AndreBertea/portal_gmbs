@@ -1,182 +1,299 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
+import { usePortalContext } from './layout'
+import { cn } from '@/lib/utils'
+import {
+  User,
+  Phone,
+  Mail,
+  Building2,
+  FileText,
+  Upload,
+  CheckCircle2,
+  Loader2,
+  ChevronRight,
+  Shield,
+  CreditCard
+} from '@/components/ui/icons'
 
-interface ArtisanData {
-  crm_id: string
-  name?: string
-  email?: string
-  phone?: string
-  company?: string
+// =============================================================================
+// TYPES
+// =============================================================================
+
+const REQUIRED_DOCUMENTS = [
+  { kind: 'kbis', label: 'Extrait Kbis', description: 'Extrait K-bis de moins de 3 mois', icon: Building2 },
+  { kind: 'assurance', label: 'Attestation d\'assurance', description: 'Attestation RC Pro en cours de validité', icon: Shield },
+  { kind: 'cni_recto_verso', label: 'CNI recto/verso', description: 'Carte d\'identité du gérant', icon: User },
+  { kind: 'iban', label: 'RIB / IBAN', description: 'Relevé d\'identité bancaire', icon: CreditCard },
+  { kind: 'decharge_partenariat', label: 'Décharge partenariat', description: 'Document de partenariat signé', icon: FileText },
+]
+
+interface DocumentStatus {
+  kind: string
+  uploaded: boolean
+  filename?: string
+  uploadedAt?: string
 }
 
-interface TokenValidation {
-  valid: boolean
-  artisan?: ArtisanData
-  intervention_id?: string
-  error?: string
-}
+// =============================================================================
+// PAGE
+// =============================================================================
 
-export default function PortalPage() {
-  const params = useParams()
-  const token = params.token as string
-  
-  const [loading, setLoading] = useState(true)
-  const [validation, setValidation] = useState<TokenValidation | null>(null)
+export default function DocumentsPage() {
+  const { artisan, token } = usePortalContext()
+  const [documents, setDocuments] = useState<DocumentStatus[]>([])
+  const [isLoadingDocs, setIsLoadingDocs] = useState(true)
+  const [uploadingKind, setUploadingKind] = useState<string | null>(null)
 
+  // Load existing documents
   useEffect(() => {
-    async function validateToken() {
+    const fetchDocuments = async () => {
       try {
-        const res = await fetch(`/api/v1/tokens/${token}/validate`)
-        const data = await res.json()
-        setValidation(data)
-      } catch {
-        setValidation({ valid: false, error: 'Erreur de connexion' })
+        // TODO: Implement document fetching from portal API
+        // For now, return empty
+        setDocuments([])
+      } catch (error) {
+        console.error('Erreur chargement documents:', error)
       } finally {
-        setLoading(false)
+        setIsLoadingDocs(false)
       }
     }
 
     if (token) {
-      validateToken()
+      fetchDocuments()
     }
   }, [token])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-600">Chargement...</p>
-        </div>
-      </div>
-    )
+  // Upload document
+  const handleFileUpload = async (kind: string, file: File) => {
+    setUploadingKind(kind)
+    
+    try {
+      // TODO: Implement document upload to portal API
+      // Simulate upload for now
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      setDocuments(prev => {
+        const existing = prev.find(d => d.kind === kind)
+        if (existing) {
+          return prev.map(d => d.kind === kind ? {
+            kind,
+            uploaded: true,
+            filename: file.name,
+            uploadedAt: new Date().toISOString()
+          } : d)
+        }
+        return [...prev, {
+          kind,
+          uploaded: true,
+          filename: file.name,
+          uploadedAt: new Date().toISOString()
+        }]
+      })
+
+    } catch (error) {
+      console.error('Erreur upload:', error)
+      alert('Erreur lors de l\'upload du document')
+    } finally {
+      setUploadingKind(null)
+    }
   }
 
-  if (!validation?.valid) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <h1 className="text-xl font-bold text-slate-900 mb-2">Lien invalide</h1>
-          <p className="text-slate-600 mb-4">
-            {validation?.error === 'Token expired' 
-              ? 'Ce lien a expiré. Veuillez contacter votre gestionnaire pour obtenir un nouveau lien.'
-              : validation?.error === 'Token revoked'
-              ? 'Ce lien a été révoqué.'
-              : 'Ce lien n\'est pas valide ou a expiré.'}
-          </p>
-          <p className="text-sm text-slate-500">
-            Si vous pensez qu&apos;il s&apos;agit d&apos;une erreur, contactez votre gestionnaire GMBS.
-          </p>
-        </div>
-      </div>
-    )
+  // Check document status
+  const getDocumentStatus = (kind: string): DocumentStatus | undefined => {
+    return documents.find(d => d.kind === kind)
   }
 
-  const artisan = validation.artisan
+  // Count uploaded documents
+  const uploadedCount = REQUIRED_DOCUMENTS.filter(doc => 
+    getDocumentStatus(doc.kind)?.uploaded
+  ).length
+
+  const completionPercentage = Math.round((uploadedCount / REQUIRED_DOCUMENTS.length) * 100)
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-bold text-slate-900">Portail Artisan</h1>
-            <p className="text-sm text-slate-500">{artisan?.name || 'Bienvenue'}</p>
-          </div>
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <span className="text-blue-600 font-semibold">
-              {artisan?.name?.charAt(0)?.toUpperCase() || 'A'}
+    <div className="space-y-6">
+      {/* Section: Personal Information */}
+      <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+          <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+            <User className="h-4 w-4 text-blue-600" />
+            Mes informations
+          </h2>
+        </div>
+        <div className="p-4 space-y-3">
+          {artisan?.company && (
+            <div className="flex items-center gap-3">
+              <Building2 className="h-4 w-4 text-slate-400" />
+              <div>
+                <p className="text-xs text-slate-500">Entreprise</p>
+                <p className="text-sm font-medium text-slate-900">{artisan.company}</p>
+              </div>
+            </div>
+          )}
+          
+          {artisan?.name && (
+            <div className="flex items-center gap-3">
+              <User className="h-4 w-4 text-slate-400" />
+              <div>
+                <p className="text-xs text-slate-500">Contact</p>
+                <p className="text-sm font-medium text-slate-900">{artisan.name}</p>
+              </div>
+            </div>
+          )}
+
+          {artisan?.phone && (
+            <a 
+              href={`tel:${artisan.phone}`}
+              className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <Phone className="h-4 w-4 text-slate-400" />
+              <div className="flex-1">
+                <p className="text-xs text-slate-500">Téléphone</p>
+                <p className="text-sm font-medium text-blue-600">{artisan.phone}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300" />
+            </a>
+          )}
+
+          {artisan?.email && (
+            <a 
+              href={`mailto:${artisan.email}`}
+              className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <Mail className="h-4 w-4 text-slate-400" />
+              <div className="flex-1">
+                <p className="text-xs text-slate-500">Email</p>
+                <p className="text-sm font-medium text-blue-600">{artisan.email}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300" />
+            </a>
+          )}
+
+          {!artisan?.company && !artisan?.name && !artisan?.phone && !artisan?.email && (
+            <p className="text-sm text-slate-500 text-center py-4">
+              Aucune information disponible
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Section: Required Documents */}
+      <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-600" />
+              Documents obligatoires
+            </h2>
+            <span className={cn(
+              "text-xs font-medium px-2 py-1 rounded-full",
+              completionPercentage === 100 
+                ? "bg-green-100 text-green-700" 
+                : "bg-amber-100 text-amber-700"
+            )}>
+              {uploadedCount}/{REQUIRED_DOCUMENTS.length}
             </span>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-lg mx-auto px-4 py-6">
-        {/* Welcome Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-          <h2 className="font-semibold text-slate-900 mb-2">
-            Bienvenue, {artisan?.name || 'Artisan'}
-          </h2>
-          <p className="text-slate-600 text-sm">
-            Depuis ce portail, vous pouvez consulter vos interventions, 
-            déposer vos documents et soumettre vos rapports photos.
+          
+          {/* Progress bar */}
+          <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div 
+              className={cn(
+                "h-full transition-all duration-500",
+                completionPercentage === 100 ? "bg-green-500" : "bg-blue-600"
+              )}
+              style={{ width: `${completionPercentage}%` }}
+            />
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            {completionPercentage === 100 
+              ? "Dossier complet !" 
+              : "Complétez votre dossier pour être opérationnel"}
           </p>
         </div>
+        
+        <div className="divide-y divide-slate-100">
+          {isLoadingDocs ? (
+            <div className="p-8 flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            </div>
+          ) : (
+            REQUIRED_DOCUMENTS.map((doc) => {
+              const status = getDocumentStatus(doc.kind)
+              const isUploading = uploadingKind === doc.kind
+              const DocIcon = doc.icon
 
-        {/* Quick Actions */}
-        <div className="space-y-3">
-          <ActionCard
-            title="Mes interventions"
-            description="Voir les interventions assignées"
-            href={`/t/${token}/interventions`}
-            icon="📋"
-          />
-          <ActionCard
-            title="Mes documents"
-            description="Déposer Kbis, assurance, RIB..."
-            href={`/t/${token}/documents`}
-            icon="📄"
-          />
-          <ActionCard
-            title="Rapport photo"
-            description="Soumettre des photos d'intervention"
-            href={`/t/${token}/photos`}
-            icon="📷"
-          />
+              return (
+                <div key={doc.kind} className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
+                      status?.uploaded 
+                        ? "bg-green-100" 
+                        : "bg-slate-100"
+                    )}>
+                      {status?.uploaded ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <DocIcon className="h-5 w-5 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-slate-900">{doc.label}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{doc.description}</p>
+                      {status?.uploaded && status.filename && (
+                        <p className="text-xs text-green-600 mt-1 truncate">
+                          ✓ {status.filename}
+                        </p>
+                      )}
+                    </div>
+                    <label className={cn(
+                      "shrink-0 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors",
+                      status?.uploaded
+                        ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        : "bg-blue-600 text-white hover:bg-blue-700",
+                      isUploading && "opacity-50 cursor-wait"
+                    )}>
+                      {isUploading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : status?.uploaded ? (
+                        "Modifier"
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Upload className="h-3 w-3" />
+                          Ajouter
+                        </span>
+                      )}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        disabled={isUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            handleFileUpload(doc.kind, file)
+                          }
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
+      </section>
 
-        {/* Info */}
-        {artisan?.company && (
-          <div className="mt-6 bg-slate-100 rounded-xl p-4">
-            <p className="text-sm text-slate-600">
-              <span className="font-medium">Entreprise :</span> {artisan.company}
-            </p>
-            {artisan.email && (
-              <p className="text-sm text-slate-600 mt-1">
-                <span className="font-medium">Email :</span> {artisan.email}
-              </p>
-            )}
-          </div>
-        )}
-      </main>
+      {/* Help note */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <p className="text-sm text-blue-800">
+          <strong>Besoin d&apos;aide ?</strong> Contactez votre gestionnaire si vous avez des questions sur les documents à fournir.
+        </p>
+      </div>
     </div>
-  )
-}
-
-function ActionCard({ 
-  title, 
-  description, 
-  href, 
-  icon 
-}: { 
-  title: string
-  description: string
-  href: string
-  icon: string 
-}) {
-  return (
-    <a
-      href={href}
-      className="flex items-center gap-4 bg-white rounded-xl border border-slate-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
-    >
-      <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-2xl">
-        {icon}
-      </div>
-      <div className="flex-1">
-        <h3 className="font-medium text-slate-900">{title}</h3>
-        <p className="text-sm text-slate-500">{description}</p>
-      </div>
-      <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
-    </a>
   )
 }
