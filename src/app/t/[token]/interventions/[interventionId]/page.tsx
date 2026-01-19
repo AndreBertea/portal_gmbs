@@ -342,7 +342,7 @@ export default function InterventionDetailPage() {
     )
   }
 
-  const statusColor = getStatusColor(intervention.status?.code)
+  const statusColor = getStatusColor(intervention.status?.code ?? null)
 
   return (
     <div className="space-y-4">
