@@ -26,6 +26,8 @@ async function main() {
       'image/jpeg',
       'image/png',
       'image/webp',
+      'image/heic',
+      'image/heif',
       'application/pdf'
     ]
   })

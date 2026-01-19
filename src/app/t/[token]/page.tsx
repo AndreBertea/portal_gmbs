@@ -385,7 +385,7 @@ export default function DocumentsPage() {
                         <input
                           type="file"
                           className="hidden"
-                          accept=".pdf,.jpg,.jpeg,.png"
+                          accept=".pdf,.jpg,.jpeg,.png,.heic,.heif"
                           disabled={isUploading}
                           onChange={(e) => {
                             const file = e.target.files?.[0]
@@ -422,7 +422,7 @@ export default function DocumentsPage() {
 
 function DocumentPreviewContent({ url, filename, compact = false }: { url: string; filename: string; compact?: boolean }) {
   const extension = filename.split('.').pop()?.toLowerCase()
-  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')
+  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'heic', 'heif'].includes(extension || '')
   const isPdf = extension === 'pdf'
 
   if (isImage) {

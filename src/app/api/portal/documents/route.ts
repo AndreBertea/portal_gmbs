@@ -98,10 +98,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate mime type
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf']
     if (!allowedMimes.includes(file.type)) {
       return NextResponse.json({ 
-        error: `Invalid file type. Allowed: ${allowedMimes.join(', ')}` 
+        error: `Invalid file type. Allowed: JPEG, PNG, WebP, HEIC, PDF` 
       }, { status: 400 })
     }
 

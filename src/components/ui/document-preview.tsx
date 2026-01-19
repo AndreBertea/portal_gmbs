@@ -18,6 +18,8 @@ const IMAGE_MIME_TYPES = new Set([
   "image/gif",
   "image/webp",
   "image/svg+xml",
+  "image/heic",
+  "image/heif",
 ])
 
 const PDF_MIME_TYPES = new Set(["application/pdf"])
@@ -32,7 +34,7 @@ function getExtension(filename?: string): string | null {
 function isImage(mimeType?: string | null, filename?: string): boolean {
   if (mimeType && IMAGE_MIME_TYPES.has(mimeType)) return true
   const extension = getExtension(filename)
-  return !!extension && ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension)
+  return !!extension && ["jpg", "jpeg", "png", "gif", "webp", "svg", "heic", "heif"].includes(extension)
 }
 
 function isPdf(mimeType?: string | null, filename?: string): boolean {
