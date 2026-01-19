@@ -76,7 +76,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[portal/crm/documents] Upload error:', error)
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'CRM error'
+      error: error instanceof Error ? error.message : 'CRM error',
+      details: error instanceof Error ? error.stack : undefined,
+      artisanId,
+      crmUrl: process.env.CRM_API_URL || 'NOT SET'
     }, { status: 500 })
   }
 }
