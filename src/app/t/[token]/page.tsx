@@ -93,9 +93,18 @@ export default function DocumentsPage() {
     setUploadingKind(kind)
     
     try {
-      // Convert file to base64
-      const arrayBuffer = await file.arrayBuffer()
-      const base64Data = Buffer.from(arrayBuffer).toString('base64')
+      // Convert file to base64 using FileReader (browser-compatible)
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          // Remove data URL prefix (e.g., "data:image/png;base64,")
+          const result = reader.result as string
+          const base64 = result.split(',')[1]
+          resolve(base64)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
 
       const response = await fetch(`/api/portal/crm/documents?token=${token}`, {
         method: 'POST',
