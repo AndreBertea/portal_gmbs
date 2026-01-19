@@ -73,6 +73,30 @@ export async function GET(request: NextRequest) {
       debug.documentsError = error instanceof Error ? error.message : String(error)
     }
 
+    // Step 5: Call CRM debug endpoint to see what it receives/expects
+    debug.step = 'calling_crm_debug'
+    try {
+      const crmBaseUrl = (process.env.CRM_API_URL || 'http://localhost:3000').replace(/\/$/, '')
+      const crmDebugUrl = `${crmBaseUrl}/api/portal-external/debug`
+      
+      const crmDebugRes = await fetch(crmDebugUrl, {
+        headers: {
+          'X-GMBS-Key-Id': process.env.GMBS_PORTAL_KEY_ID || '',
+          'X-GMBS-Secret': process.env.GMBS_PORTAL_SECRET || '',
+          'Content-Type': 'application/json'
+        },
+        cache: 'no-store'
+      })
+      
+      if (crmDebugRes.ok) {
+        debug.crmDebugResult = await crmDebugRes.json()
+      } else {
+        debug.crmDebugError = `HTTP ${crmDebugRes.status}`
+      }
+    } catch (error) {
+      debug.crmDebugError = error instanceof Error ? error.message : String(error)
+    }
+
     debug.step = 'complete'
     return NextResponse.json(debug)
 
