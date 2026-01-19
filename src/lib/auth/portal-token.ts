@@ -102,3 +102,19 @@ export async function validatePortalToken(
 export function getTokenFromFormData(formData: FormData): string | null {
   return formData.get('token') as string | null
 }
+
+/**
+ * Extract token from request (query param, header, or body)
+ */
+export function getTokenFromRequest(request: NextRequest): string | null {
+  // Try query param first
+  const { searchParams } = new URL(request.url)
+  const queryToken = searchParams.get('token')
+  if (queryToken) return queryToken
+
+  // Try X-Portal-Token header
+  const headerToken = request.headers.get('X-Portal-Token')
+  if (headerToken) return headerToken
+
+  return null
+}

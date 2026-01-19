@@ -34,6 +34,7 @@ interface DocumentStatus {
   uploaded: boolean
   filename?: string
   uploadedAt?: string
+  url?: string
 }
 
 // =============================================================================
@@ -46,14 +47,22 @@ export default function DocumentsPage() {
   const [isLoadingDocs, setIsLoadingDocs] = useState(true)
   const [uploadingKind, setUploadingKind] = useState<string | null>(null)
 
-  // Load existing documents
+  // Load existing documents from CRM
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        const response = await fetch(`/api/portal/documents?token=${token}`)
+        const response = await fetch(`/api/portal/crm/documents?token=${token}`)
         if (response.ok) {
           const data = await response.json()
-          setDocuments(data.documents || [])
+          // Map CRM documents to our format
+          const mapped: DocumentStatus[] = (data.documents || []).map((doc: Record<string, unknown>) => ({
+            kind: doc.kind as string,
+            uploaded: true,
+            filename: doc.filename as string,
+            uploadedAt: doc.createdAt as string,
+            url: doc.url as string
+          }))
+          setDocuments(mapped)
         }
       } catch (error) {
         console.error('Erreur chargement documents:', error)
@@ -67,19 +76,26 @@ export default function DocumentsPage() {
     }
   }, [token])
 
-  // Upload document
+  // Upload document to CRM
   const handleFileUpload = async (kind: string, file: File) => {
     setUploadingKind(kind)
     
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('kind', kind)
-      formData.append('token', token)
+      // Convert file to base64
+      const arrayBuffer = await file.arrayBuffer()
+      const base64Data = Buffer.from(arrayBuffer).toString('base64')
 
-      const response = await fetch('/api/portal/documents', {
+      const response = await fetch(`/api/portal/crm/documents?token=${token}`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          kind,
+          filename: file.name,
+          mimeType: file.type,
+          base64Data
+        }),
       })
 
       if (!response.ok) {
@@ -91,20 +107,17 @@ export default function DocumentsPage() {
       
       setDocuments(prev => {
         const existing = prev.find(d => d.kind === kind)
-        if (existing) {
-          return prev.map(d => d.kind === kind ? {
-            kind,
-            uploaded: true,
-            filename: data.document.filename,
-            uploadedAt: data.document.uploadedAt
-          } : d)
-        }
-        return [...prev, {
+        const newDoc: DocumentStatus = {
           kind,
           uploaded: true,
-          filename: data.document.filename,
-          uploadedAt: data.document.uploadedAt
-        }]
+          filename: file.name,
+          uploadedAt: new Date().toISOString(),
+          url: data.url
+        }
+        if (existing) {
+          return prev.map(d => d.kind === kind ? newDoc : d)
+        }
+        return [...prev, newDoc]
       })
 
     } catch (error: unknown) {

@@ -77,42 +77,41 @@ export default function InterventionsPage() {
   useEffect(() => {
     const fetchInterventions = async () => {
       try {
-        // TODO: Implement interventions API - for now mock data
-        // In production, this would call the CRM API via portal backend
-        setInterventions([
-          {
-            id: 'mock-1',
-            id_inter: 'INT-2024-001',
-            context: 'Réparation fuite d\'eau - Salle de bain',
-            address: '15 rue de la Paix',
-            city: 'Paris',
-            postal_code: '75002',
-            date: '2026-01-20',
-            due_date: '2026-01-25',
-            consigne: 'Accès par le gardien',
-            status: { code: 'INTER_EN_COURS', label: 'En cours', color: '#3b82f6' },
-            metier: { label: 'Plomberie' },
-            hasReport: false,
-            photoCount: 3
+        // Call CRM API via portal backend
+        const response = await fetch(`/api/portal/crm/interventions?token=${token}`)
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch interventions')
+        }
+
+        const data = await response.json()
+        
+        // Map CRM data to our interface
+        const mapped: Intervention[] = (data.interventions || []).map((i: Record<string, unknown>) => ({
+          id: i.id as string,
+          id_inter: null, // CRM doesn't expose this yet
+          context: i.context as string || i.name as string || null,
+          address: i.address as string || null,
+          city: null, // Parse from address if needed
+          postal_code: null,
+          date: i.createdAt as string || null,
+          due_date: i.dueAt as string || null,
+          consigne: i.consigne as string || null,
+          status: {
+            code: i.status as string || null,
+            label: i.statusLabel as string || null,
+            color: null
           },
-          {
-            id: 'mock-2',
-            id_inter: 'INT-2024-002',
-            context: 'Installation prise électrique - Cuisine',
-            address: '42 avenue des Champs-Élysées',
-            city: 'Paris',
-            postal_code: '75008',
-            date: '2026-01-15',
-            due_date: '2026-01-18',
-            consigne: null,
-            status: { code: 'INTER_TERMINEE', label: 'Terminée', color: '#22c55e' },
-            metier: { label: 'Électricité' },
-            hasReport: true,
-            photoCount: 5
-          }
-        ])
+          metier: null,
+          hasReport: false, // TODO: Check from CRM
+          photoCount: 0 // TODO: Get from CRM
+        }))
+
+        setInterventions(mapped)
       } catch (error) {
         console.error('Erreur chargement interventions:', error)
+        // Keep empty state on error
+        setInterventions([])
       } finally {
         setIsLoading(false)
       }
