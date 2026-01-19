@@ -16,12 +16,20 @@ import {
   Shield,
   CreditCard,
   Eye,
-  Pencil
+  Pencil,
+  X,
+  Download
 } from '@/components/ui/icons'
 
 // =============================================================================
 // TYPES
 // =============================================================================
+
+interface PreviewDocument {
+  url: string
+  filename: string
+  mimeType?: string
+}
 
 const REQUIRED_DOCUMENTS = [
   { kind: 'kbis', label: 'Extrait Kbis', description: 'Extrait K-bis de moins de 3 mois', icon: Building2 },
@@ -48,6 +56,7 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<DocumentStatus[]>([])
   const [isLoadingDocs, setIsLoadingDocs] = useState(true)
   const [uploadingKind, setUploadingKind] = useState<string | null>(null)
+  const [previewDoc, setPreviewDoc] = useState<PreviewDocument | null>(null)
 
   // Load existing documents from CRM
   useEffect(() => {
@@ -287,7 +296,11 @@ export default function DocumentsPage() {
                       {status?.uploaded && status.url && (
                         <button
                           type="button"
-                          onClick={() => window.open(status.url, '_blank')}
+                          onClick={() => setPreviewDoc({
+                            url: status.url!,
+                            filename: status.filename || 'Document',
+                            mimeType: undefined
+                          })}
                           className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
                           title="Voir le document"
                         >
@@ -341,6 +354,103 @@ export default function DocumentsPage() {
           <strong>Besoin d&apos;aide ?</strong> Contactez votre gestionnaire si vous avez des questions sur les documents à fournir.
         </p>
       </div>
+
+      {/* Document Preview Modal */}
+      {previewDoc && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setPreviewDoc(null)}
+        >
+          <div 
+            className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+              <h3 className="font-medium text-sm text-slate-900 truncate pr-4">
+                {previewDoc.filename}
+              </h3>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewDoc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                  title="Ouvrir dans un nouvel onglet"
+                >
+                  <Download className="h-4 w-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewDoc(null)}
+                  className="p-2 rounded-lg bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors"
+                  title="Fermer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            
+            {/* Preview Content */}
+            <div className="p-4 overflow-auto max-h-[calc(85vh-60px)]">
+              <DocumentPreviewContent url={previewDoc.url} filename={previewDoc.filename} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// =============================================================================
+// DOCUMENT PREVIEW COMPONENT
+// =============================================================================
+
+function DocumentPreviewContent({ url, filename }: { url: string; filename: string }) {
+  const extension = filename.split('.').pop()?.toLowerCase()
+  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')
+  const isPdf = extension === 'pdf'
+
+  if (isImage) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px] bg-slate-100 rounded-lg">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={url}
+          alt={filename}
+          className="max-w-full max-h-[60vh] object-contain rounded-lg"
+        />
+      </div>
+    )
+  }
+
+  if (isPdf) {
+    return (
+      <div className="min-h-[400px] bg-slate-100 rounded-lg overflow-hidden">
+        <iframe
+          src={url}
+          title={filename}
+          className="w-full h-[60vh] border-0"
+        />
+      </div>
+    )
+  }
+
+  // Fallback for other file types
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[200px] bg-slate-100 rounded-lg p-6 text-center">
+      <FileText className="h-12 w-12 text-slate-400 mb-3" />
+      <p className="text-sm font-medium text-slate-700 mb-1">{filename}</p>
+      <p className="text-xs text-slate-500 mb-4">Aperçu non disponible pour ce type de fichier</p>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <Download className="h-4 w-4" />
+        Télécharger
+      </a>
     </div>
   )
 }
