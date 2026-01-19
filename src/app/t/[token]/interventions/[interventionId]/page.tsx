@@ -19,8 +19,13 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from '@/components/ui/icons'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { DocumentPreview } from '@/components/ui/document-preview'
 
 // =============================================================================
 // TYPES
@@ -396,24 +401,50 @@ export default function InterventionDetailPage() {
             </button>
             {showSharedDocs && (
               <div className="px-4 pb-4 space-y-2">
-                {intervention.sharedDocuments.map((doc, index) => (
-                  <div key={index} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                    <FileText className="h-4 w-4 text-slate-400" />
-                    <span className="text-sm text-slate-700 flex-1">{doc.label}</span>
-                    {doc.url ? (
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        Voir
-                      </a>
-                    ) : (
-                      <span className="text-xs text-slate-400">Non disponible</span>
-                    )}
-                  </div>
-                ))}
+                <TooltipProvider>
+                  {intervention.sharedDocuments.map((doc, index) => (
+                    <div key={index} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                      <FileText className="h-4 w-4 text-slate-400" />
+                      <span className="text-sm text-slate-700 flex-1">{doc.label}</span>
+                      {doc.url ? (
+                        <Tooltip>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                            </PopoverTrigger>
+                            <TooltipContent side="top" className="text-[10px]">Aperçu</TooltipContent>
+                            <PopoverContent className="w-auto p-1.5" side="left" align="center">
+                              <div className="flex flex-col overflow-hidden rounded border border-slate-200 bg-white" style={{ width: '320px', height: '280px' }}>
+                                <div className="flex-none px-3 pt-2">
+                                  <h4 className="text-xs font-semibold truncate text-slate-900">{doc.label}</h4>
+                                  <p className="text-[10px] text-slate-500">{doc.type}</p>
+                                </div>
+                                <div className="flex-1 overflow-hidden px-3 pb-2 pt-1">
+                                  <DocumentPreview
+                                    url={doc.url}
+                                    filename={doc.label}
+                                    className="flex h-full w-full items-stretch justify-center overflow-hidden rounded border border-slate-200 bg-slate-50"
+                                  />
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </Tooltip>
+                      ) : (
+                        <span className="text-xs text-slate-400">Non disponible</span>
+                      )}
+                    </div>
+                  ))}
+                </TooltipProvider>
               </div>
             )}
           </div>
