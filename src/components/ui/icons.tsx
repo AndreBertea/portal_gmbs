@@ -33,6 +33,8 @@ import {
   Building2,
   Shield,
   CreditCard,
+  Eye,
+  Pencil,
   type LucideIcon
 } from 'lucide-react'
 
@@ -66,5 +68,7 @@ export {
   Building2,
   Shield,
   CreditCard,
+  Eye,
+  Pencil,
   type LucideIcon
 }

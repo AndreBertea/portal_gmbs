@@ -14,7 +14,9 @@ import {
   Loader2,
   ChevronRight,
   Shield,
-  CreditCard
+  CreditCard,
+  Eye,
+  Pencil
 } from '@/components/ui/icons'
 
 // =============================================================================
@@ -278,37 +280,53 @@ export default function DocumentsPage() {
                         </p>
                       )}
                     </div>
-                    <label className={cn(
-                      "shrink-0 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors",
-                      status?.uploaded
-                        ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        : "bg-blue-600 text-white hover:bg-blue-700",
-                      isUploading && "opacity-50 cursor-wait"
-                    )}>
-                      {isUploading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : status?.uploaded ? (
-                        "Modifier"
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <Upload className="h-3 w-3" />
-                          Ajouter
-                        </span>
+                    
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Eye button - Preview document */}
+                      {status?.uploaded && status.url && (
+                        <button
+                          type="button"
+                          onClick={() => window.open(status.url, '_blank')}
+                          className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                          title="Voir le document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                       )}
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        disabled={isUploading}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            handleFileUpload(doc.kind, file)
-                          }
-                          e.target.value = ''
-                        }}
-                      />
-                    </label>
+                      
+                      {/* Upload/Edit button */}
+                      <label className={cn(
+                        "p-2 rounded-lg cursor-pointer transition-colors",
+                        status?.uploaded
+                          ? "bg-amber-100 text-amber-600 hover:bg-amber-200"
+                          : "bg-blue-600 text-white hover:bg-blue-700",
+                        isUploading && "opacity-50 cursor-wait"
+                      )}
+                      title={status?.uploaded ? "Modifier le document" : "Ajouter un document"}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : status?.uploaded ? (
+                          <Pencil className="h-4 w-4" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          disabled={isUploading}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              handleFileUpload(doc.kind, file)
+                            }
+                            e.target.value = ''
+                          }}
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
               )
