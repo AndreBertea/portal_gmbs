@@ -21,7 +21,8 @@ import {
   Receipt,
   MessageSquare,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Euro
 } from '@/components/ui/icons'
 
 // =============================================================================
@@ -50,6 +51,7 @@ interface Intervention {
   photos_count: number
   has_devis: boolean
   has_facture_artisan: boolean
+  cout_sst: number | null
 }
 
 // =============================================================================
@@ -227,6 +229,18 @@ function InterventionCard({
               </div>
             )}
           </div>
+
+          {/* SST Cost */}
+          {intervention.cout_sst !== null && intervention.cout_sst > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                <Euro className="h-4 w-4 text-emerald-600" />
+              </div>
+              <span className="text-sm text-slate-700 font-medium">
+                {intervention.cout_sst.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Consigne Section */}
@@ -341,7 +355,8 @@ export default function InterventionsPage() {
           metier: i.metier as string || null,
           photos_count: (i.photos_count as number) || 0,
           has_devis: Boolean(i.has_devis),
-          has_facture_artisan: Boolean(i.has_facture_artisan)
+          has_facture_artisan: Boolean(i.has_facture_artisan),
+          cout_sst: (i.cout_sst as number) || null
         }))
 
         setInterventions(mapped)

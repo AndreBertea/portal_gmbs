@@ -35,6 +35,8 @@ export interface CRMIntervention {
   photos_count: number
   has_devis: boolean
   has_facture_artisan: boolean
+  // SST cost
+  cout_sst: number | null
 }
 
 // Document types for intervention detail

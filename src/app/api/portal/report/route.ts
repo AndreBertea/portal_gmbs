@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
  * Generate a new report for an intervention
  */
 export async function POST(request: NextRequest) {
-  let body: { token: string; interventionId: string }
+  let body: { token: string; interventionId: string; content?: string }
   try {
     body = await request.json()
   } catch {
@@ -111,15 +111,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch photos' }, { status: 500 })
   }
 
-  if (!photos || photos.length === 0) {
-    return NextResponse.json({ 
-      error: 'Ajoutez au moins une photo avant de générer le rapport' 
-    }, { status: 400 })
-  }
+  // Determine report content
+  let reportContent: string
 
-  // Generate report content
-  // TODO: Replace with actual AI generation (OpenAI) when API key is provided
-  const reportContent = generateMockReport(interventionId, artisanName as string, photos)
+  if (body.content !== undefined && body.content.trim()) {
+    // Manual edit - use the provided content
+    reportContent = body.content
+  } else {
+    // Auto generation - requires photos
+    if (!photos || photos.length === 0) {
+      return NextResponse.json({
+        error: 'Ajoutez au moins une photo avant de générer le rapport'
+      }, { status: 400 })
+    }
+    // Generate report content
+    // TODO: Replace with actual AI generation (OpenAI) when API key is provided
+    reportContent = generateMockReport(interventionId, artisanName as string, photos)
+  }
 
   // Check if existing draft report - update instead of create
   const { data: existingReport } = await supabase

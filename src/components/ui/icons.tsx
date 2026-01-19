@@ -36,6 +36,8 @@ import {
   Eye,
   Pencil,
   Receipt,
+  Save,
+  Euro,
   type LucideIcon
 } from 'lucide-react'
 
@@ -72,5 +74,7 @@ export {
   Eye,
   Pencil,
   Receipt,
+  Save,
+  Euro,
   type LucideIcon
 }
