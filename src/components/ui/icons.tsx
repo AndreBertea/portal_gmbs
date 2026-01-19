@@ -35,6 +35,7 @@ import {
   CreditCard,
   Eye,
   Pencil,
+  Receipt,
   type LucideIcon
 } from 'lucide-react'
 
@@ -70,5 +71,6 @@ export {
   CreditCard,
   Eye,
   Pencil,
+  Receipt,
   type LucideIcon
 }

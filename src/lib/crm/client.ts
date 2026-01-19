@@ -13,18 +13,58 @@ export interface CRMClientConfig {
 
 export interface CRMIntervention {
   id: string
+  id_inter: string | null
   name: string
-  address: string
-  context: string
+  address: string | null
+  city: string | null
+  postal_code: string | null
+  context: string | null
   consigne: string | null
-  status: string
-  statusCode: string
-  statusLabel: string
-  statusChangedAt: string
+  client_name: string | null
+  owner_name: string | null
+  owner_phone: string | null
+  metier: string | null
+  status: string | null
+  statusCode: string | null
+  statusLabel: string | null
+  date: string | null
   dueAt: string | null
   createdAt: string
   updatedAt: string
-  agency: string | null
+  // Document counts
+  photos_count: number
+  has_devis: boolean
+  has_facture_artisan: boolean
+}
+
+// Document types for intervention detail
+export interface CRMPhotoDocument {
+  id: string
+  url: string
+  filename: string | null
+  mime_type: string | null
+  created_at: string
+  created_by_display: string | null
+}
+
+export interface CRMFileDocument {
+  id: string
+  url: string
+  filename: string | null
+  mime_type: string | null
+  file_size: number | null
+  created_at: string
+}
+
+export interface CRMInterventionDocuments {
+  photos: CRMPhotoDocument[]
+  devis: CRMFileDocument[]
+  facturesArtisans: CRMFileDocument[]
+}
+
+export interface CRMInterventionDetail {
+  intervention: CRMIntervention
+  documents: CRMInterventionDocuments
 }
 
 export interface CRMDocument {
@@ -115,6 +155,13 @@ class CRMClient {
     count: number
   }> {
     return this.request(`/artisan/${artisanId}/interventions`)
+  }
+
+  /**
+   * Get detailed intervention data with documents
+   */
+  async getInterventionDetail(interventionId: string, artisanId: string): Promise<CRMInterventionDetail> {
+    return this.request(`/intervention/${interventionId}?artisanId=${artisanId}`)
   }
 
   /**
