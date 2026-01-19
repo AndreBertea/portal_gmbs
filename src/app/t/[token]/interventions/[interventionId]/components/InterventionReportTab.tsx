@@ -52,7 +52,7 @@ export function InterventionReportTab({
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [newPhotoComment, setNewPhotoComment] = useState('')
-  const debounceRef = useRef<NodeJS.Timeout>()
+  const debounceRef = useRef<NodeJS.Timeout>(undefined)
 
   const isSubmitted = initialReport?.status === 'submitted'
   const photos = initialPhotos
