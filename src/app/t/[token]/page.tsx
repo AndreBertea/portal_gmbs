@@ -29,6 +29,7 @@ interface PreviewDocument {
   url: string
   filename: string
   mimeType?: string
+  kind: string
 }
 
 const REQUIRED_DOCUMENTS = [
@@ -294,18 +295,65 @@ export default function DocumentsPage() {
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Eye button - Preview document */}
                       {status?.uploaded && status.url && (
-                        <button
-                          type="button"
-                          onClick={() => setPreviewDoc({
-                            url: status.url!,
-                            filename: status.filename || 'Document',
-                            mimeType: undefined
-                          })}
-                          className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
-                          title="Voir le document"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewDoc(
+                              previewDoc?.kind === doc.kind 
+                                ? null 
+                                : {
+                                    url: status.url!,
+                                    filename: status.filename || 'Document',
+                                    mimeType: undefined,
+                                    kind: doc.kind
+                                  }
+                            )}
+                            className={cn(
+                              "p-2 rounded-lg transition-colors",
+                              previewDoc?.kind === doc.kind
+                                ? "bg-blue-600 text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            )}
+                            title="Voir le document"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          
+                          {/* Popover Preview */}
+                          {previewDoc?.kind === doc.kind && (
+                            <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+                              {/* Header */}
+                              <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50">
+                                <span className="text-xs font-medium text-slate-700 truncate max-w-[150px]">
+                                  {previewDoc.filename}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <a
+                                    href={previewDoc.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1.5 rounded-md bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                                    title="Ouvrir"
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPreviewDoc(null)}
+                                    className="p-1.5 rounded-md bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors"
+                                    title="Fermer"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              </div>
+                              {/* Preview */}
+                              <div className="p-2">
+                                <DocumentPreviewContent url={previewDoc.url} filename={previewDoc.filename} compact />
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
                       
                       {/* Upload/Edit button */}
@@ -355,49 +403,6 @@ export default function DocumentsPage() {
         </p>
       </div>
 
-      {/* Document Preview Modal */}
-      {previewDoc && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          onClick={() => setPreviewDoc(null)}
-        >
-          <div 
-            className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
-              <h3 className="font-medium text-sm text-slate-900 truncate pr-4">
-                {previewDoc.filename}
-              </h3>
-              <div className="flex items-center gap-2">
-                <a
-                  href={previewDoc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
-                  title="Ouvrir dans un nouvel onglet"
-                >
-                  <Download className="h-4 w-4" />
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setPreviewDoc(null)}
-                  className="p-2 rounded-lg bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors"
-                  title="Fermer"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-            
-            {/* Preview Content */}
-            <div className="p-4 overflow-auto max-h-[calc(85vh-60px)]">
-              <DocumentPreviewContent url={previewDoc.url} filename={previewDoc.filename} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -406,19 +411,25 @@ export default function DocumentsPage() {
 // DOCUMENT PREVIEW COMPONENT
 // =============================================================================
 
-function DocumentPreviewContent({ url, filename }: { url: string; filename: string }) {
+function DocumentPreviewContent({ url, filename, compact = false }: { url: string; filename: string; compact?: boolean }) {
   const extension = filename.split('.').pop()?.toLowerCase()
   const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension || '')
   const isPdf = extension === 'pdf'
 
   if (isImage) {
     return (
-      <div className="flex items-center justify-center min-h-[300px] bg-slate-100 rounded-lg">
+      <div className={cn(
+        "flex items-center justify-center bg-slate-100 rounded-lg overflow-hidden",
+        compact ? "h-48" : "min-h-[300px]"
+      )}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
           alt={filename}
-          className="max-w-full max-h-[60vh] object-contain rounded-lg"
+          className={cn(
+            "object-contain rounded-lg",
+            compact ? "max-h-48 max-w-full" : "max-w-full max-h-[60vh]"
+          )}
         />
       </div>
     )
@@ -426,11 +437,17 @@ function DocumentPreviewContent({ url, filename }: { url: string; filename: stri
 
   if (isPdf) {
     return (
-      <div className="min-h-[400px] bg-slate-100 rounded-lg overflow-hidden">
+      <div className={cn(
+        "bg-slate-100 rounded-lg overflow-hidden",
+        compact ? "h-48" : "min-h-[400px]"
+      )}>
         <iframe
           src={url}
           title={filename}
-          className="w-full h-[60vh] border-0"
+          className={cn(
+            "w-full border-0",
+            compact ? "h-48" : "h-[60vh]"
+          )}
         />
       </div>
     )
@@ -438,19 +455,26 @@ function DocumentPreviewContent({ url, filename }: { url: string; filename: stri
 
   // Fallback for other file types
   return (
-    <div className="flex flex-col items-center justify-center min-h-[200px] bg-slate-100 rounded-lg p-6 text-center">
-      <FileText className="h-12 w-12 text-slate-400 mb-3" />
-      <p className="text-sm font-medium text-slate-700 mb-1">{filename}</p>
-      <p className="text-xs text-slate-500 mb-4">Aperçu non disponible pour ce type de fichier</p>
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-      >
-        <Download className="h-4 w-4" />
-        Télécharger
-      </a>
+    <div className={cn(
+      "flex flex-col items-center justify-center bg-slate-100 rounded-lg text-center",
+      compact ? "h-32 p-3" : "min-h-[200px] p-6"
+    )}>
+      <FileText className={cn("text-slate-400 mb-2", compact ? "h-8 w-8" : "h-12 w-12")} />
+      <p className={cn("font-medium text-slate-700", compact ? "text-xs" : "text-sm mb-1")}>{filename}</p>
+      {!compact && (
+        <>
+          <p className="text-xs text-slate-500 mb-4">Aperçu non disponible</p>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Télécharger
+          </a>
+        </>
+      )}
     </div>
   )
 }
