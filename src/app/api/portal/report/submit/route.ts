@@ -112,6 +112,51 @@ export async function POST(request: NextRequest) {
       .in('id', report.photo_ids)
   }
 
+  // Notify CRM that report has been submitted
+  // Récupérer l'API key du tenant pour appeler le CRM
+  const { data: apiKey, error: apiKeyError } = await supabase
+    .from('api_keys')
+    .select('key_id, key_secret_hash')
+    .eq('tenant_id', tenantId)
+    .is('revoked_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (apiKey) {
+    try {
+      // Notifier le CRM que le rapport a été soumis
+      const crmResponse = await fetch(
+        `${process.env.GMBS_CRM_BASE_URL}/api/portal-external/intervention/${interventionId}/report-submitted`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-GMBS-Key-Id': apiKey.key_id,
+            'X-GMBS-Secret': process.env.CRM_API_SECRET || ''
+          },
+          body: JSON.stringify({
+            artisanId,
+            reportId: reportId,
+            reportContent: report.content,
+            photoCount: report.photo_ids?.length || 0
+          })
+        }
+      )
+
+      if (!crmResponse.ok) {
+        const errorText = await crmResponse.text()
+        console.error('[submit-report] CRM notification failed:', errorText)
+        // Ne pas bloquer la soumission du rapport même si la notification échoue
+      } else {
+        console.log('[submit-report] CRM notified successfully')
+      }
+    } catch (error) {
+      console.error('[submit-report] Failed to notify CRM:', error)
+      // Ne pas bloquer - le rapport est déjà soumis
+    }
+  }
+
   return NextResponse.json({
     success: true,
     message: 'Rapport transmis avec succès'

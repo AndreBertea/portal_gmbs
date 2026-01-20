@@ -11,6 +11,26 @@ export interface CRMClientConfig {
   secret?: string
 }
 
+export interface CRMAssignedUser {
+  id: string
+  firstname: string | null
+  lastname: string | null
+  email: string | null
+  fullname: string | null
+}
+
+export interface CRMClientInfo {
+  id: string
+  name: string | null
+  phone: string | null
+}
+
+export interface CRMOwner {
+  id: string
+  name: string | null
+  phone: string | null
+}
+
 export interface CRMIntervention {
   id: string
   id_inter: string | null
@@ -28,6 +48,7 @@ export interface CRMIntervention {
   statusCode: string | null
   statusLabel: string | null
   date: string | null
+  date_prevue: string | null
   dueAt: string | null
   createdAt: string
   updatedAt: string
@@ -37,6 +58,11 @@ export interface CRMIntervention {
   has_facture_artisan: boolean
   // SST cost
   cout_sst: number | null
+  // New enriched data
+  assigned_user_id: string | null
+  assigned_user: CRMAssignedUser | null
+  client: CRMClientInfo | null
+  owner: CRMOwner | null
 }
 
 // Document types for intervention detail

@@ -341,7 +341,7 @@ export default function InterventionsPage() {
           address: i.address as string || null,
           city: i.city as string || null,
           postal_code: i.postal_code as string || null,
-          date: i.date as string || i.createdAt as string || null,
+          date: i.date_prevue as string || i.date as string || i.createdAt as string || null,
           due_date: i.dueAt as string || null,
           consigne: i.consigne as string || null,
           client_name: i.client_name as string || null,

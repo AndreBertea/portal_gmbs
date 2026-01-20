@@ -12,12 +12,33 @@ import {
   TabNavigation,
   InterventionHeader,
   InterventionInfosTab,
-  InterventionReportTab
+  InterventionReportTab,
+  InterventionContactTab
 } from './components'
 
 // =============================================================================
 // TYPES
 // =============================================================================
+
+interface AssignedUser {
+  id: string
+  firstname: string | null
+  lastname: string | null
+  email: string | null
+  fullname: string | null
+}
+
+interface ClientInfo {
+  id: string
+  name: string | null
+  phone: string | null
+}
+
+interface OwnerInfo {
+  id: string
+  name: string | null
+  phone: string | null
+}
 
 interface InterventionDetail {
   id: string
@@ -84,7 +105,7 @@ export default function InterventionDetailPage() {
   const interventionId = params.interventionId as string
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'infos' | 'rapport'>('infos')
+  const [activeTab, setActiveTab] = useState<'infos' | 'rapport' | 'contact'>('infos')
 
   // Data state
   const [intervention, setIntervention] = useState<InterventionDetail | null>(null)
@@ -95,6 +116,11 @@ export default function InterventionDetailPage() {
   const [report, setReport] = useState<Report | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
+
+  // Contact data
+  const [assignedUser, setAssignedUser] = useState<AssignedUser | null>(null)
+  const [client, setClient] = useState<ClientInfo | null>(null)
+  const [owner, setOwner] = useState<OwnerInfo | null>(null)
 
   // Load intervention details
   useEffect(() => {
@@ -115,7 +141,7 @@ export default function InterventionDetailPage() {
             address: int.address,
             city: int.city,
             postal_code: int.postal_code,
-            date: int.date || int.createdAt,
+            date: int.date_prevue || int.date || int.createdAt,
             due_date: int.dueAt,
             client_name: int.client_name,
             owner_name: int.owner_name,
@@ -127,6 +153,11 @@ export default function InterventionDetailPage() {
               label: int.statusLabel
             }
           })
+
+          // Map contact data
+          setAssignedUser(int.assigned_user || null)
+          setClient(int.client || null)
+          setOwner(int.owner || null)
 
           // Set CRM documents
           if (data.documents) {
@@ -207,7 +238,7 @@ export default function InterventionDetailPage() {
           reportStatus={report?.status}
         />
 
-        {activeTab === 'infos' ? (
+        {activeTab === 'infos' && (
           <InterventionInfosTab
             intervention={intervention}
             crmPhotos={crmPhotos}
@@ -215,7 +246,9 @@ export default function InterventionDetailPage() {
             crmFactures={crmFactures}
             onPhotoClick={setSelectedPhoto}
           />
-        ) : (
+        )}
+
+        {activeTab === 'rapport' && (
           <InterventionReportTab
             token={token}
             interventionId={interventionId}
@@ -224,6 +257,14 @@ export default function InterventionDetailPage() {
             onReportChange={setReport}
             onPhotosChange={setArtisanPhotos}
             onPhotoClick={setSelectedPhoto}
+          />
+        )}
+
+        {activeTab === 'contact' && (
+          <InterventionContactTab
+            assignedUser={assignedUser}
+            client={client}
+            owner={owner}
           />
         )}
       </div>
