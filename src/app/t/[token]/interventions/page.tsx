@@ -15,9 +15,6 @@ import {
   Loader2,
   FileText,
   Camera,
-  User,
-  Phone,
-  Building2,
   Receipt,
   MessageSquare,
   ChevronDown,
@@ -118,7 +115,6 @@ function InterventionCard({
   const StatusIcon = statusConfig.icon
 
   const hasDocuments = intervention.photos_count > 0 || intervention.has_devis || intervention.has_facture_artisan
-  const hasOwnerInfo = intervention.owner_name || intervention.owner_phone
   const hasConsigne = intervention.consigne && intervention.consigne.trim().length > 0
 
   return (
@@ -150,7 +146,7 @@ function InterventionCard({
           {intervention.context || 'Intervention sans description'}
         </h3>
 
-        {/* Info Grid */}
+        {/* Info Grid - Only address, date and cost */}
         <div className="space-y-2.5 mb-4">
           {/* Address */}
           {(intervention.address || intervention.city) && (
@@ -171,64 +167,17 @@ function InterventionCard({
             </div>
           )}
 
-          {/* Owner Info */}
-          {hasOwnerInfo && (
-            <div className="flex items-start gap-2.5">
+          {/* Date */}
+          {intervention.date && (
+            <div className="flex items-center gap-2">
               <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                <User className="h-4 w-4 text-slate-500" />
+                <Calendar className="h-4 w-4 text-slate-500" />
               </div>
-              <div className="flex-1 min-w-0 pt-0.5">
-                <p className="text-sm text-slate-700">
-                  {intervention.owner_name || 'Propriétaire'}
-                </p>
-                {intervention.owner_phone && (
-                  <a 
-                    href={`tel:${intervention.owner_phone}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium mt-0.5"
-                  >
-                    <Phone className="h-3 w-3" />
-                    {intervention.owner_phone}
-                  </a>
-                )}
-              </div>
+              <span className="text-sm text-slate-700">
+                {formatDate(intervention.date, { short: true })}
+              </span>
             </div>
           )}
-
-          {/* Client / Agency */}
-          {intervention.client_name && (
-            <div className="flex items-start gap-2.5">
-              <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                <Building2 className="h-4 w-4 text-slate-500" />
-              </div>
-              <div className="flex-1 min-w-0 pt-0.5">
-                <p className="text-xs text-slate-500">Client</p>
-                <p className="text-sm text-slate-700">{intervention.client_name}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Date & Metier */}
-          <div className="flex items-center gap-4">
-            {intervention.date && (
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                  <Calendar className="h-4 w-4 text-slate-500" />
-                </div>
-                <span className="text-sm text-slate-700">
-                  {formatDate(intervention.date, { short: true })}
-                </span>
-              </div>
-            )}
-            {intervention.metier && (
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                  <Briefcase className="h-4 w-4 text-slate-500" />
-                </div>
-                <span className="text-sm text-slate-700">{intervention.metier}</span>
-              </div>
-            )}
-          </div>
 
           {/* SST Cost */}
           {intervention.cout_sst !== null && intervention.cout_sst > 0 && (

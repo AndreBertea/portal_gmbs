@@ -1,6 +1,6 @@
 'use client'
 
-import { User, Mail, Phone, Home } from 'lucide-react'
+import { User, Mail, Phone, Home, Receipt } from 'lucide-react'
 
 interface AssignedUser {
   id: string
@@ -59,28 +59,6 @@ export function InterventionContactTab({
         </div>
       )}
 
-      {/* Propriétaire (facturation) */}
-      {owner && owner.name && (
-        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-          <h3 className="font-medium text-sm text-slate-900 mb-3 flex items-center gap-2">
-            <User className="h-4 w-4 text-green-600" />
-            Propriétaire
-          </h3>
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-900">{owner.name}</p>
-            {owner.phone && (
-              <a
-                href={`tel:${owner.phone}`}
-                className="text-sm text-blue-600 hover:underline flex items-center gap-2"
-              >
-                <Phone className="h-4 w-4" />
-                {owner.phone}
-              </a>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Locataire (tenant/client) */}
       {tenant && tenant.name && (
         <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
@@ -97,6 +75,28 @@ export function InterventionContactTab({
               >
                 <Phone className="h-4 w-4" />
                 {tenant.phone}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Détails facturation (propriétaire/owner) */}
+      {owner && owner.name && (
+        <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+          <h3 className="font-medium text-sm text-slate-900 mb-3 flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-amber-600" />
+            Détails facturation
+          </h3>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-slate-900">{owner.name}</p>
+            {owner.phone && (
+              <a
+                href={`tel:${owner.phone}`}
+                className="text-sm text-blue-600 hover:underline flex items-center gap-2"
+              >
+                <Phone className="h-4 w-4" />
+                {owner.phone}
               </a>
             )}
           </div>

@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo } from "react"
-import Image from "next/image"
 import { FileText, Download } from "@/components/ui/icons"
 import { cn } from "@/lib/utils"
 
@@ -52,14 +51,13 @@ export function DocumentPreview({ url, mimeType, filename, className }: Document
 
   if (previewType === "image") {
     return (
-      <div className={cn("relative overflow-hidden rounded-md border border-slate-200 bg-slate-100 min-h-[10rem]", className)}>
-        <Image
+      <div className={cn("relative overflow-hidden rounded-md border border-slate-200 bg-slate-100 min-h-[10rem] flex items-center justify-center", className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={url}
           alt={filename ?? "Document"}
-          fill
-          className="object-contain"
+          className="max-w-full max-h-full object-contain"
           loading="lazy"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
         />
       </div>
     )

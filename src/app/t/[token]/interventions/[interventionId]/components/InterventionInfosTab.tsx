@@ -5,15 +5,11 @@ import { formatDate } from '@/lib/utils'
 import {
   MapPin,
   Calendar,
-  Briefcase,
   FileText,
   Camera,
   MessageSquare,
   ChevronDown,
   ChevronUp,
-  User,
-  Phone,
-  Building2,
   Download,
   Receipt,
   Eye,
@@ -33,16 +29,7 @@ interface InterventionDetail {
   city: string | null
   postal_code: string | null
   date: string | null
-  due_date: string | null
-  client_name: string | null
-  owner_name: string | null
-  owner_phone: string | null
-  metier: string | null
   cout_sst: number | null
-  status: {
-    code: string | null
-    label: string | null
-  } | null
 }
 
 interface CRMPhoto {
@@ -91,7 +78,7 @@ export function InterventionInfosTab({
 
   return (
     <div className="divide-y divide-slate-100">
-      {/* Metadata */}
+      {/* Metadata - Only address, date and cost */}
       <div className="p-4 space-y-3">
         {/* Address */}
         {(intervention.address || intervention.city) && (
@@ -111,44 +98,6 @@ export function InterventionInfosTab({
           </div>
         )}
 
-        {/* Owner */}
-        {intervention.owner_name && (
-          <div className="flex items-start gap-3">
-            <User className="h-4 w-4 text-slate-400 mt-0.5" />
-            <div>
-              <p className="text-xs text-slate-500">Proprietaire</p>
-              <p className="text-sm text-slate-900">{intervention.owner_name}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Owner Phone */}
-        {intervention.owner_phone && (
-          <div className="flex items-start gap-3">
-            <Phone className="h-4 w-4 text-slate-400 mt-0.5" />
-            <div>
-              <p className="text-xs text-slate-500">Telephone</p>
-              <a
-                href={`tel:${intervention.owner_phone}`}
-                className="text-sm text-blue-600 hover:underline font-medium"
-              >
-                {intervention.owner_phone}
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* Client */}
-        {intervention.client_name && (
-          <div className="flex items-start gap-3">
-            <Building2 className="h-4 w-4 text-slate-400 mt-0.5" />
-            <div>
-              <p className="text-xs text-slate-500">Client / Agence</p>
-              <p className="text-sm text-slate-900">{intervention.client_name}</p>
-            </div>
-          </div>
-        )}
-
         {/* Date */}
         {intervention.date && (
           <div className="flex items-start gap-3">
@@ -156,17 +105,6 @@ export function InterventionInfosTab({
             <div>
               <p className="text-xs text-slate-500">Date prevue</p>
               <p className="text-sm text-slate-900">{formatDate(intervention.date)}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Metier */}
-        {intervention.metier && (
-          <div className="flex items-start gap-3">
-            <Briefcase className="h-4 w-4 text-slate-400 mt-0.5" />
-            <div>
-              <p className="text-xs text-slate-500">Metier</p>
-              <p className="text-sm text-slate-900">{intervention.metier}</p>
             </div>
           </div>
         )}
