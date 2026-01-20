@@ -14,11 +14,19 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ interventionId: string }> }
 ) {
+  console.log('[portal-report] Request received, headers:', {
+    hasKeyId: !!request.headers.get('X-GMBS-Key-Id'),
+    hasSecret: !!request.headers.get('X-GMBS-Secret')
+  })
+
   // Valider la requête API depuis le CRM
   const authResult = await validateTenantRequest(request)
   if (!authResult.success) {
+    console.error('[portal-report] Auth failed:', authResult.error)
     return NextResponse.json({ error: authResult.error }, { status: 401 })
   }
+
+  console.log('[portal-report] Auth successful, tenant:', authResult.tenant.id)
 
   const { interventionId } = await params
   const artisanId = request.nextUrl.searchParams.get('artisanId')
