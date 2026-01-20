@@ -60,14 +60,16 @@ export function InterventionContactTab({
       )}
 
       {/* Locataire (tenant/client) */}
-      {tenant && tenant.name && (
+      {tenant && (tenant.name || tenant.phone) && (
         <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
           <h3 className="font-medium text-sm text-slate-900 mb-3 flex items-center gap-2">
             <Home className="h-4 w-4 text-purple-600" />
             Locataire
           </h3>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-900">{tenant.name}</p>
+            {tenant.name && (
+              <p className="text-sm font-medium text-slate-900">{tenant.name}</p>
+            )}
             {tenant.phone && (
               <a
                 href={`tel:${tenant.phone}`}
@@ -82,14 +84,16 @@ export function InterventionContactTab({
       )}
 
       {/* Détails facturation (propriétaire/owner) */}
-      {owner && owner.name && (
+      {owner && (owner.name || owner.phone) && (
         <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
           <h3 className="font-medium text-sm text-slate-900 mb-3 flex items-center gap-2">
             <Receipt className="h-4 w-4 text-amber-600" />
             Détails facturation
           </h3>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-900">{owner.name}</p>
+            {owner.name && (
+              <p className="text-sm font-medium text-slate-900">{owner.name}</p>
+            )}
             {owner.phone && (
               <a
                 href={`tel:${owner.phone}`}
