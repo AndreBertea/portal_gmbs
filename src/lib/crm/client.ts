@@ -19,13 +19,13 @@ export interface CRMAssignedUser {
   fullname: string | null
 }
 
-export interface CRMClientInfo {
+export interface CRMOwner {
   id: string
   name: string | null
   phone: string | null
 }
 
-export interface CRMOwner {
+export interface CRMTenant {
   id: string
   name: string | null
   phone: string | null
@@ -58,11 +58,11 @@ export interface CRMIntervention {
   has_facture_artisan: boolean
   // SST cost
   cout_sst: number | null
-  // New enriched data
+  // Enriched data for contact tab
   assigned_user_id: string | null
   assigned_user: CRMAssignedUser | null
-  client: CRMClientInfo | null
   owner: CRMOwner | null
+  tenant: CRMTenant | null
 }
 
 // Document types for intervention detail

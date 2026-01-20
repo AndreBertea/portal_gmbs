@@ -28,13 +28,13 @@ interface AssignedUser {
   fullname: string | null
 }
 
-interface ClientInfo {
+interface OwnerInfo {
   id: string
   name: string | null
   phone: string | null
 }
 
-interface OwnerInfo {
+interface TenantInfo {
   id: string
   name: string | null
   phone: string | null
@@ -119,8 +119,8 @@ export default function InterventionDetailPage() {
 
   // Contact data
   const [assignedUser, setAssignedUser] = useState<AssignedUser | null>(null)
-  const [client, setClient] = useState<ClientInfo | null>(null)
   const [owner, setOwner] = useState<OwnerInfo | null>(null)
+  const [tenant, setTenant] = useState<TenantInfo | null>(null)
 
   // Load intervention details
   useEffect(() => {
@@ -156,8 +156,8 @@ export default function InterventionDetailPage() {
 
           // Map contact data
           setAssignedUser(int.assigned_user || null)
-          setClient(int.client || null)
           setOwner(int.owner || null)
+          setTenant(int.tenant || null)
 
           // Set CRM documents
           if (data.documents) {
@@ -263,8 +263,8 @@ export default function InterventionDetailPage() {
         {activeTab === 'contact' && (
           <InterventionContactTab
             assignedUser={assignedUser}
-            client={client}
             owner={owner}
+            tenant={tenant}
           />
         )}
       </div>

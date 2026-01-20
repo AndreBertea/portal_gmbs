@@ -1,6 +1,6 @@
 'use client'
 
-import { User, Mail, Phone, Building2 } from 'lucide-react'
+import { User, Mail, Phone, Home } from 'lucide-react'
 
 interface AssignedUser {
   id: string
@@ -10,13 +10,13 @@ interface AssignedUser {
   fullname: string | null
 }
 
-interface ClientInfo {
+interface OwnerInfo {
   id: string
   name: string | null
   phone: string | null
 }
 
-interface OwnerInfo {
+interface TenantInfo {
   id: string
   name: string | null
   phone: string | null
@@ -24,14 +24,14 @@ interface OwnerInfo {
 
 interface InterventionContactTabProps {
   assignedUser: AssignedUser | null
-  client: ClientInfo | null
   owner: OwnerInfo | null
+  tenant: TenantInfo | null
 }
 
 export function InterventionContactTab({
   assignedUser,
-  client,
-  owner
+  owner,
+  tenant
 }: InterventionContactTabProps) {
   return (
     <div className="p-4 space-y-4">
@@ -59,7 +59,7 @@ export function InterventionContactTab({
         </div>
       )}
 
-      {/* Propriétaire */}
+      {/* Propriétaire (facturation) */}
       {owner && owner.name && (
         <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
           <h3 className="font-medium text-sm text-slate-900 mb-3 flex items-center gap-2">
@@ -81,29 +81,29 @@ export function InterventionContactTab({
         </div>
       )}
 
-      {/* Client / Agence */}
-      {client && client.name && (
+      {/* Locataire (tenant/client) */}
+      {tenant && tenant.name && (
         <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
           <h3 className="font-medium text-sm text-slate-900 mb-3 flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-purple-600" />
-            Client / Agence
+            <Home className="h-4 w-4 text-purple-600" />
+            Locataire
           </h3>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-slate-900">{client.name}</p>
-            {client.phone && (
+            <p className="text-sm font-medium text-slate-900">{tenant.name}</p>
+            {tenant.phone && (
               <a
-                href={`tel:${client.phone}`}
+                href={`tel:${tenant.phone}`}
                 className="text-sm text-blue-600 hover:underline flex items-center gap-2"
               >
                 <Phone className="h-4 w-4" />
-                {client.phone}
+                {tenant.phone}
               </a>
             )}
           </div>
         </div>
       )}
 
-      {!assignedUser && !owner && !client && (
+      {!assignedUser && !owner && !tenant && (
         <div className="text-center py-8 text-slate-500">
           <User className="h-8 w-8 mx-auto mb-2 opacity-30" />
           <p className="text-sm">Aucune information de contact disponible</p>
