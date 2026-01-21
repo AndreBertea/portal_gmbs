@@ -80,7 +80,7 @@ export async function GET(
         // Générer les URLs signées pour chaque photo
         for (const photo of photoRecords) {
           const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-            .from('intervention-photos')
+            .from('artisan-uploads')
             .createSignedUrl(photo.storage_path, 3600) // Valide 1 heure
 
           if (signedUrlError) {
