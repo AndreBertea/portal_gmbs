@@ -21,15 +21,19 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 // These MUST match what the CRM has in its .env
 // Set via environment variables for security
-const KNOWN_KEY_ID = process.env.CRM_API_KEY_ID
-const KNOWN_SECRET = process.env.CRM_API_SECRET
+const KNOWN_KEY_ID_ENV = process.env.CRM_API_KEY_ID
+const KNOWN_SECRET_ENV = process.env.CRM_API_SECRET
 
-if (!KNOWN_KEY_ID || !KNOWN_SECRET) {
+if (!KNOWN_KEY_ID_ENV || !KNOWN_SECRET_ENV) {
   console.error('❌ CRM_API_KEY_ID and CRM_API_SECRET are required')
   console.error('   Set these in your .env.local or run with:')
   console.error('   CRM_API_KEY_ID=pk_xxx CRM_API_SECRET=sk_xxx npx tsx scripts/setup-crm-tenant.ts')
   process.exit(1)
 }
+
+// After validation, we can safely use these as non-undefined
+const KNOWN_KEY_ID: string = KNOWN_KEY_ID_ENV
+const KNOWN_SECRET: string = KNOWN_SECRET_ENV
 
 async function main() {
   console.log('🚀 Setting up CRM tenant in Portal database...\n')
