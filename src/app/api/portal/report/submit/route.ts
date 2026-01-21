@@ -113,40 +113,43 @@ export async function POST(request: NextRequest) {
   }
 
   // Notify CRM that report has been submitted
-  // Récupérer l'API key du tenant pour appeler le CRM
-  const { data: apiKey, error: apiKeyError } = await supabase
-    .from('api_keys')
-    .select('key_id, key_secret_hash')
-    .eq('tenant_id', tenantId)
-    .is('revoked_at', null)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  // Utiliser les credentials configurés dans les variables d'environnement
+  const crmBaseUrl = process.env.GMBS_CRM_BASE_URL
+  const crmApiKeyId = process.env.CRM_API_KEY_ID
+  const crmApiSecret = process.env.CRM_API_SECRET
 
-  if (apiKey) {
+  console.log('[submit-report] CRM config:', {
+    baseUrl: crmBaseUrl ? '✓' : '✗',
+    keyId: crmApiKeyId ? '✓' : '✗',
+    secret: crmApiSecret ? '✓' : '✗'
+  })
+
+  if (crmBaseUrl && crmApiKeyId && crmApiSecret) {
     try {
       // Notifier le CRM que le rapport a été soumis
-      const crmResponse = await fetch(
-        `${process.env.GMBS_CRM_BASE_URL}/api/portal-external/intervention/${interventionId}/report-submitted`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-GMBS-Key-Id': apiKey.key_id,
-            'X-GMBS-Secret': process.env.CRM_API_SECRET || ''
-          },
-          body: JSON.stringify({
-            artisanId,
-            reportId: reportId,
-            reportContent: report.content,
-            photoCount: report.photo_ids?.length || 0
-          })
-        }
-      )
+      const crmUrl = `${crmBaseUrl}/api/portal-external/intervention/${interventionId}/report-submitted`
+      console.log('[submit-report] Calling CRM:', crmUrl)
+      
+      const crmResponse = await fetch(crmUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-GMBS-Key-Id': crmApiKeyId,
+          'X-GMBS-Secret': crmApiSecret
+        },
+        body: JSON.stringify({
+          artisanId,
+          reportId: reportId,
+          reportContent: report.content,
+          photoCount: report.photo_ids?.length || 0
+        })
+      })
+
+      const responseText = await crmResponse.text()
+      console.log('[submit-report] CRM response:', crmResponse.status, responseText)
 
       if (!crmResponse.ok) {
-        const errorText = await crmResponse.text()
-        console.error('[submit-report] CRM notification failed:', errorText)
+        console.error('[submit-report] CRM notification failed:', crmResponse.status, responseText)
         // Ne pas bloquer la soumission du rapport même si la notification échoue
       } else {
         console.log('[submit-report] CRM notified successfully')
@@ -155,6 +158,12 @@ export async function POST(request: NextRequest) {
       console.error('[submit-report] Failed to notify CRM:', error)
       // Ne pas bloquer - le rapport est déjà soumis
     }
+  } else {
+    console.warn('[submit-report] CRM notification skipped - missing config:', {
+      GMBS_CRM_BASE_URL: !!crmBaseUrl,
+      CRM_API_KEY_ID: !!crmApiKeyId,
+      CRM_API_SECRET: !!crmApiSecret
+    })
   }
 
   return NextResponse.json({
